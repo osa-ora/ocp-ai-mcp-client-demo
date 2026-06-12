@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>MCP Agent Console</title>
+
+<link rel="stylesheet"
+      href="/static/style.css">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>"></head>
+</head>
+    
+<body>
+<div class="container">
+
+    <div class="sidebar">
+        <h4>Powered by Osa Ora 2026</h4>
+        <hr>
+        <h2>MCP Servers</h2>
+
+        <div id="servers"></div>
+
+    </div>
+
+    <div class="main">
+
+        <div class="header">
+
+            <h2>MCP Chat Client</h2>
+
+        </div>
+
+        <div id="chat" class="chat">
+        </div>
+
+        <form id="chatForm">
+            <input
+                id="prompt"
+                placeholder="Ask something..." />
+
+            <button>
+                Send
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+
+</html>
