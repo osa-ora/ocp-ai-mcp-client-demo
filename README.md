@@ -38,8 +38,8 @@ Deploy the application:
 ```
 oc new-app python:3.12-minimal-ubi10~https://github.com/osa-ora/ocp-ai-mcp-client-demo --name=ocp-ai-mcp-client-demo -n hr-mcp
 
-oc set env deployment/ocp-ai-mcp-client-demo --from=configmap/mcp-client-config
-oc rollout restart deployment/ocp-ai-mcp-client-demo
+oc set env deployment/ocp-ai-mcp-client-demo --from=configmap/mcp-client-config -n hr-mcp
+oc rollout restart deployment/ocp-ai-mcp-client-demo -n hr-mcp
 ```
 
 Open the route and start interacting with the MCP client Chat Application.
