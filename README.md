@@ -1,7 +1,12 @@
-# ocp-ai-mcp-client-demo
-Demo to show how to deploy custom MCP Client over OpenShift
+# Deploy Custom MCP Client over OpenShift
+
+This demo shows how to deploy custom MCP Client over OpenShift.
+
+<img width="1536" height="1024" alt="MCP_Client-Components" src="https://github.com/user-attachments/assets/5c09ea46-56ce-43fd-ac0e-4d2e22b2d81b" />
+
 
 You need first to have list of available MCP Servers, if you don't have one, deploy the HR MCP server from here: https://github.com/osa-ora/ocp-ai-custom-mcp-demo
+
 
 Construct the list of MCP Servers as following: 
 
@@ -50,10 +55,10 @@ Open the route and start interacting with the MCP client Chat Application.
 
 Example requests (based on the HR MCP Server):
 
-- leave balance for Osama Oransa?
-- basic profile for Sara Ali
+- Leave balance for Osama Oransa?
+- Basic profile for Sara Ali
 - Show my full profile for EMP001?
-- policy for remote work?
+- Policy for remote work?
 - leave requests for Osama Oransa
-- basic profile for EMP002
+- Basic profile for EMP002
 
