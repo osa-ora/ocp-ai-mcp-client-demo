@@ -50,10 +50,10 @@ Open the route and start interacting with the MCP client Chat Application.
 
 Example requests (based on the HR MCP Server):
 
-"leave balance for Osama Oransa?"
-"basic profile for Sara Ali"
-"Show my full profile for EMP001?"
-"policy for remote work?"
-"leave requests for Osama Oransa."
-"basic profile for EMP002"
+- leave balance for Osama Oransa?
+- basic profile for Sara Ali
+- Show my full profile for EMP001?
+- policy for remote work?
+- leave requests for Osama Oransa
+- basic profile for EMP002
 
