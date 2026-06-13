@@ -3,7 +3,7 @@ let isRequestPending = false;
 // Run everything safely after DOM loads
 document.addEventListener("DOMContentLoaded", () => {
     loadServers();
-    setInterval(loadServers, 15000);
+    setInterval(loadServers, 30000);
 
     const chatForm = document.getElementById("chatForm");
     if (chatForm) {
