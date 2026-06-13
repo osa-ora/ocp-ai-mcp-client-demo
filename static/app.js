@@ -1,4 +1,5 @@
 let isRequestPending = false;
+let isServerOnline = true; // Tracks the last known connection state to manage welcome messages
 
 // Run everything safely after DOM loads
 document.addEventListener("DOMContentLoaded", () => {
@@ -12,7 +13,71 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =====================================================
-// LOAD SERVERS
+// UPDATE STATUS BADGE & INPUT GUI ACTIONS
+// =====================================================
+function updateStatusGUI(isOnline) {
+    const badge = document.getElementById("status-badge");
+    const sendBtn = document.querySelector("#chatForm button");
+    const promptInput = document.getElementById("prompt");
+    const chat = document.getElementById("chat");
+    
+    if (!badge) return;
+
+    if (isOnline) {
+        badge.textContent = "Online";
+        badge.className = "status-badge online";
+        
+        // If the system was previously offline, unlock and announce recovery
+        if (!isServerOnline) {
+            isServerOnline = true;
+            
+            if (sendBtn && !isRequestPending) {
+                sendBtn.disabled = false;
+                sendBtn.innerText = "Send";
+            }
+            if (promptInput) {
+                promptInput.removeAttribute("disabled");
+                promptInput.placeholder = "Ask something...";
+            }
+            if (chat) {
+                chat.innerHTML += `
+                    <div class="agent">
+                        <div class="answer">🟢 <b>System Update:</b> The connection is restored! The system is back online and ready for your requests.</div>
+                    </div>
+                `;
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+    } else {
+        badge.textContent = "Offline";
+        badge.className = "status-badge offline";
+        
+        // If the system was previously online, lock elements and notify state
+        if (isServerOnline) {
+            isServerOnline = false;
+            
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerText = "System Offline...";
+            }
+            if (promptInput) {
+                promptInput.setAttribute("disabled", "true");
+                promptInput.placeholder = "Please wait till the system is back...";
+            }
+            if (chat) {
+                chat.innerHTML += `
+                    <div class="agent">
+                        <div class="answer">⚠️ <b>Connection Lost:</b> Unstable gateway configuration detected. Please wait while the system attempts to reconnect...</div>
+                    </div>
+                `;
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+    }
+}
+
+// =====================================================
+// LOAD SERVERS (WITH GUI STATUS DETECTOR)
 // =====================================================
 async function loadServers() {
     try {
@@ -20,6 +85,10 @@ async function loadServers() {
         if (!response.ok) throw new Error("Network response was not ok");
         
         const data = await response.json();
+        
+        // Network connection is functional: Update UI to Online
+        updateStatusGUI(true);
+
         const container = document.getElementById("servers");
         if (!container) return;
 
@@ -66,6 +135,9 @@ async function loadServers() {
 
     } catch (error) {
         console.error("Failed to refresh servers:", error);
+        
+        // Catch network connection loss / TypeError: Update UI to Offline
+        updateStatusGUI(false);
     }
 }
 
@@ -86,11 +158,8 @@ function escapeHtml(text) {
 function decodeUnicode(text) {
     if (!text) return "";
     try {
-        // This forces JavaScript to natively parse the string exactly like a browser JSON engine would,
-        // instantly converting all \u00b0 and \ud83d\ude0e sequences into perfect visual emojis.
         return JSON.parse('"' + text.replace(/"/g, '\\"') + '"');
     } catch (e) {
-        // Fallback just in case the string manipulation fails
         return text;
     }
 }
@@ -101,7 +170,8 @@ function decodeUnicode(text) {
 async function handleChatSubmit(e) {
     e.preventDefault();
 
-    if (isRequestPending) return;
+    // Prevent submission if a request is already pending or if the server is down
+    if (isRequestPending || !isServerOnline) return;
 
     const prompt = document.getElementById("prompt");
     const text = prompt ? prompt.value : "";
@@ -119,7 +189,6 @@ async function handleChatSubmit(e) {
         sendBtn.innerText = "Sending...";
     }
 
-    // show user message immediately (safe)
     if (chat) {
         chat.innerHTML += `<div class="user">${escapeHtml(text)}</div>`;
         chat.scrollTop = chat.scrollHeight;
@@ -140,13 +209,11 @@ async function handleChatSubmit(e) {
 
         const data = await response.json();
 
-        // SAFE render blocks AFTER data exists
         if (chat && Array.isArray(data.blocks)) {
             renderBlocks(data.blocks);
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // tools rendering
         let toolHtml = "";
 
         if (Array.isArray(data.tools) && data.tools.length > 0) {
@@ -162,7 +229,6 @@ async function handleChatSubmit(e) {
         }
 
         if (chat) {
-            // Read raw text, escape standard layout characters, then decode unicode hex characters cleanly
             const rawAnswer = data.response || data.answer || "";
             const cleanDisplayAnswer = decodeUnicode(escapeHtml(rawAnswer));
 
@@ -180,7 +246,8 @@ async function handleChatSubmit(e) {
     } finally {
         isRequestPending = false;
 
-        if (sendBtn) {
+        // Only restore the send button if the server didn't drop offline while waiting
+        if (sendBtn && isServerOnline) {
             sendBtn.disabled = false;
             sendBtn.classList.remove("loading");
             sendBtn.innerText = "Send";
@@ -190,6 +257,7 @@ async function handleChatSubmit(e) {
 
 function addWelcomeMessage() {
     const chat = document.getElementById("chat");
+    if (!chat) return;
 
     chat.innerHTML += `
         <div class="agent">
@@ -200,6 +268,7 @@ function addWelcomeMessage() {
 
 function renderBlocks(blocks) {
     const chat = document.getElementById("chat");
+    if (!chat) return;
 
     let html = "";
 
