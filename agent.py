@@ -1,6 +1,7 @@
 import json
 import asyncio
 import re
+import traceback
 from typing import TypedDict, Optional, Any, Dict, List
 from langgraph.graph import StateGraph, END
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -631,9 +632,9 @@ async def run_agent(query: str):
         }
 
     except Exception as e:
+        full_traceback = traceback.format_exc()
         error_msg = str(e) if str(e) else repr(e)
-        debug(f"[AGENT CRASH INTERCEPTED] {error_msg}", force=True)
-        
+        debug(f"[AGENT CRASH INTERCEPTED]\n{full_traceback}", force=True)        
         return {
             "answer": f"<span style='color: red; font-weight: bold;'>Error: {error_msg}</span>",
             "tools": [],
