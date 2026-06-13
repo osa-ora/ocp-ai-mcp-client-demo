@@ -222,7 +222,7 @@ llm = build_llm(
 # Response LLM - Ollama Natural Text Mode Enabled
 friendly_llm = build_llm(
     temperature=0.5,
-    json_mode=False
+    json_mode=True
 )
 
 # =========================================================
