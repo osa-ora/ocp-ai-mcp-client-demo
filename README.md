@@ -1,8 +1,8 @@
 # Deploy Custom MCP Client over OpenShift
 
-This demo shows how to deploy custom MCP Client over OpenShift.
+This demo shows how to deploy custom MCP Client over OpenShift, the following is the solution components.
 
-<img width="1536" height="1024" alt="MCP_Client-Components" src="https://github.com/user-attachments/assets/5c09ea46-56ce-43fd-ac0e-4d2e22b2d81b" />
+<img width="1536" height="1024" alt="MCP-client-architecture" src="https://github.com/user-attachments/assets/fe727a82-853f-4a47-a7dc-fda91ca88284" />
 
 
 You need first to have list of available MCP Servers, if you don't have one, deploy the HR MCP server from here: https://github.com/osa-ora/ocp-ai-custom-mcp-demo
