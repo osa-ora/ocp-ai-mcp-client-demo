@@ -112,9 +112,8 @@ async function loadServers() {
                     "></span>
                     ${escapeHtml(server.name)}
                 </h3>
-                <div>${escapeHtml(server.transport)}</div>
-                <small>${escapeHtml(server.url)}</small>
-                <br><br>
+                <div>${escapeHtml(server.url)} (${escapeHtml(server.transport)})</div>
+                <br>
             `;
 
             if (Array.isArray(server.tools)) {
