@@ -68,7 +68,7 @@ def build_skill_map(tools):
 # =========================================================
 # TOOL CACHE REFRESH LOOP
 # =========================================================
-async def refresh_tool_cache_loop(interval: int = 30):
+async def refresh_tool_cache_loop(interval: int = 100):
     try:
         while True:
             try:
@@ -109,6 +109,12 @@ async def refresh_tool_cache_loop(interval: int = 30):
                         new_health[server["name"]] = "offline"
 
                 async with CACHE_LOCK:
+                    # Explicit Memory Clearance: sever connections to old tool objects
+                    CACHE.tools.clear()
+                    CACHE.skill_map.clear()
+                    CACHE.valid_skills.clear()
+
+                    # Bind fresh data
                     CACHE.tools = tools
                     SERVER_HEALTH.update(new_health)
 
@@ -213,10 +219,10 @@ llm = build_llm(
     json_mode=True
 )
 
-# Response LLM
+# Response LLM - Ollama Natural Text Mode Enabled
 friendly_llm = build_llm(
     temperature=0.5,
-    json_mode=True
+    json_mode=False
 )
 
 # =========================================================
@@ -264,15 +270,19 @@ async def load_tool_cache():
             SERVER_HEALTH[server["name"]] = "offline"
             continue
 
-    CACHE.tools = tools
+    async with CACHE_LOCK:
+        # Clear existing keys to guarantee a clean memory state at startup
+        CACHE.tools.clear()
+        CACHE.skill_map.clear()
+        CACHE.valid_skills.clear()
 
-    if not CACHE.tools:
-        CACHE.skill_map = {}
-        CACHE.valid_skills = set()
-        return
+        CACHE.tools = tools
 
-    CACHE.skill_map = build_skill_map(CACHE.tools)
-    CACHE.valid_skills = set(CACHE.skill_map.keys())
+        if not CACHE.tools:
+            return
+
+        CACHE.skill_map = build_skill_map(CACHE.tools)
+        CACHE.valid_skills = set(CACHE.skill_map.keys())
 
     debug(f"[CACHE] Total tools loaded: {len(CACHE.tools)}")
 
