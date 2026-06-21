@@ -27,6 +27,9 @@ DEFAULT_SERVERS = [
 ```
 Add it to the following ConfigMap, populate the Model information and any other configurations, then create that ConfigMap as following:
 
+
+Note: you need a model location and api_key for that model in that config map.
+
 ```
 oc create configmap mcp-client-config \
   --from-literal=PORT=8080 \
@@ -55,7 +58,9 @@ oc expose svc/ocp-ai-mcp-client-demo -n hr-mcp
 
 Open the route and start interacting with the MCP client Chat Application.
 
-<img width="1721" height="876" alt="Screenshot 2026-06-21 at 4 00 43 PM" src="https://github.com/user-attachments/assets/f6b4d357-4971-4260-afe7-31e8890214b9" />
+
+<img width="1722" height="863" alt="Screenshot 2026-06-21 at 4 17 42 PM" src="https://github.com/user-attachments/assets/a8599c65-9f5d-4cf3-8d79-5eeaaa7724e7" />
+
 
 Example requests (based on the HR MCP Server):
 
