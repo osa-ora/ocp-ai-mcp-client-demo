@@ -10,6 +10,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chatForm) {
         chatForm.addEventListener("submit", handleChatSubmit);
     }
+
+    // Secure Event Delegation: Catching example clicks without global scope leaks
+    const serverContainer = document.getElementById("servers");
+    if (serverContainer) {
+        serverContainer.addEventListener("click", (event) => {
+            const exampleLink = event.target.closest(".mcp-example-link");
+            if (exampleLink) {
+                event.preventDefault();
+                
+                // Block interactions if button is explicitly disabled (server offline or request pending)
+                if (exampleLink.classList.contains("disabled") || isRequestPending || !isServerOnline) return;
+                
+                const targetPrompt = exampleLink.getAttribute("data-prompt");
+                if (targetPrompt) {
+                    executeChatMessage(targetPrompt);
+                }
+            }
+        });
+    }
 });
 
 // =====================================================
@@ -39,6 +58,7 @@ function updateStatusGUI(isOnline) {
                 promptInput.removeAttribute("disabled");
                 promptInput.placeholder = "Ask something...";
             }
+            toggleExampleButtonsGUI(false);
             if (chat) {
                 chat.innerHTML += `
                     <div class="agent">
@@ -64,6 +84,7 @@ function updateStatusGUI(isOnline) {
                 promptInput.setAttribute("disabled", "true");
                 promptInput.placeholder = "Please wait till the system is back...";
             }
+            toggleExampleButtonsGUI(true);
             if (chat) {
                 chat.innerHTML += `
                     <div class="agent">
@@ -76,8 +97,24 @@ function updateStatusGUI(isOnline) {
     }
 }
 
+// Helper routine to switch active states on interactive components
+function toggleExampleButtonsGUI(shouldDisable) {
+    document.querySelectorAll(".mcp-example-link").forEach(btn => {
+        if (shouldDisable) {
+            btn.classList.add("disabled");
+        } else {
+            // Only re-enable the button if its parent server context is online
+            const serverBlock = btn.closest(".server");
+            const isServerUp = serverBlock ? serverBlock.getAttribute("data-status") === "up" : true;
+            if (isServerUp) {
+                btn.classList.remove("disabled");
+            }
+        }
+    });
+}
+
 // =====================================================
-// LOAD SERVERS (WITH GUI STATUS DETECTOR)
+// LOAD SERVERS (DECOUPLED FROM INLINE GLOBAL LISTENERS)
 // =====================================================
 async function loadServers() {
     try {
@@ -85,7 +122,6 @@ async function loadServers() {
         if (!response.ok) throw new Error("Network response was not ok");
         
         const data = await response.json();
-        
         // Network connection is functional: Update UI to Online
         updateStatusGUI(true);
 
@@ -95,12 +131,12 @@ async function loadServers() {
         let finalHtml = "";
         const serversList = data.servers || [];
 
-        serversList.forEach(server => {
+        serversList.forEach((server, index) => {
             const status = server.status || "down";
             const isUp = status === "up";
 
             let serverHtml = `
-            <div class="server">
+            <div class="server" data-status="${status}">
                 <h3>
                     <span style="
                         display:inline-block;
@@ -126,6 +162,30 @@ async function loadServers() {
                 });
             }
 
+            // --- RENDER EXAMPLES SECTION ---
+            if (Array.isArray(server.examples) && server.examples.length > 0) {
+                // Keep examples visible, but grey them out if the specific server is offline
+                const isItemDisabled = isRequestPending || !isServerOnline || !isUp;
+                const disableClass = isItemDisabled ? " disabled" : "";
+                
+                serverHtml += `
+                    <div class="server-examples-container">
+                        <span class="server-examples-title">Try Examples:</span>
+                        <div class="server-examples-wrapper">
+                `;
+                server.examples.forEach(example => {
+                    serverHtml += `
+                        <a href="#" class="mcp-example-link${disableClass}" data-prompt="${escapeHtml(example)}">
+                            💡 ${escapeHtml(example)}
+                        </a>
+                    `;
+                });
+                serverHtml += `
+                        </div>
+                    </div>
+                `;
+            }
+
             serverHtml += `</div>`;
             finalHtml += serverHtml;
         });
@@ -134,8 +194,6 @@ async function loadServers() {
 
     } catch (error) {
         console.error("Failed to refresh servers:", error);
-        
-        // Catch network connection loss / TypeError: Update UI to Offline
         updateStatusGUI(false);
     }
 }
@@ -164,36 +222,50 @@ function decodeUnicode(text) {
 }
 
 // =====================================================
-// CHAT HANDLER (WITH FIXED BUTTON LOCK)
+// CHAT HANDLERS & CORE CONTEXT PIPELINE
 // =====================================================
 async function handleChatSubmit(e) {
     e.preventDefault();
 
-    // Prevent submission if a request is already pending or if the server is down
     if (isRequestPending || !isServerOnline) return;
 
-    const prompt = document.getElementById("prompt");
-    const text = prompt ? prompt.value : "";
+    const promptInput = document.getElementById("prompt");
+    const text = promptInput ? promptInput.value : "";
 
     if (!text) return;
 
+    // Clear input field right away for explicit manual entries
+    promptInput.value = "";
+    
+    await executeChatMessage(text);
+}
+
+// Unified transmission processor utilized by forms and example clicks alike
+async function executeChatMessage(text) {
+    if (isRequestPending || !isServerOnline) return;
+
     const chat = document.getElementById("chat");
     const sendBtn = document.querySelector("#chatForm button");
+    const promptInput = document.getElementById("prompt");
 
     isRequestPending = true;
+    toggleExampleButtonsGUI(true);
 
+    // Lock Down GUI components to disable extra messages from firing
     if (sendBtn) {
         sendBtn.disabled = true;
         sendBtn.classList.add("loading");
         sendBtn.innerText = "Sending...";
     }
+    if (promptInput) {
+        promptInput.setAttribute("disabled", "true");
+    }
 
+    // Append User Prompt to view log
     if (chat) {
         chat.innerHTML += `<div class="user">${escapeHtml(text)}</div>`;
         chat.scrollTop = chat.scrollHeight;
     }
-
-    prompt.value = "";
 
     try {
         const response = await fetch("/chat", {
@@ -245,11 +317,18 @@ async function handleChatSubmit(e) {
     } finally {
         isRequestPending = false;
 
-        // Only restore the send button if the server didn't drop offline while waiting
-        if (sendBtn && isServerOnline) {
-            sendBtn.disabled = false;
-            sendBtn.classList.remove("loading");
-            sendBtn.innerText = "Send";
+        // Restore form inputs and reset layout only if the gateway remains active
+        if (isServerOnline) {
+            toggleExampleButtonsGUI(false);
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.classList.remove("loading");
+                sendBtn.innerText = "Send";
+            }
+            if (promptInput) {
+                promptInput.removeAttribute("disabled");
+                promptInput.placeholder = "Ask something...";
+            }
         }
     }
 }

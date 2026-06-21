@@ -171,6 +171,6 @@ async def chat(request: ChatRequest):
 if __name__ == "__main__":
     import uvicorn
     # Dynamically read port from environment if the cloud platform injects it, default to 8100
-    port = int(os.getenv("PORT", 8080))
+    port = int(os.getenv("PORT", 8081))
     print(f"🚀 Starting server on 0.0.0.0:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port)

@@ -7,11 +7,17 @@ load_dotenv()
 # =========================================================
 # MODEL CONFIG
 # =========================================================
-# ollama | openai, default local ollama
+# ollama | openai | ogx, default local ollama
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434")
-LLM_API_KEY = os.getenv("LLM_API_KEY", "dummy")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3.1")
+#LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ogx")
+#LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:8321/v1")
+#MODEL_NAME = os.getenv("MODEL_NAME", "ollama/llama3.2:3b")
+#MODEL_NAME="ollama/llama3.2:3b"
+VECTOR_STORE_ID = os.getenv("VECTOR_STORE_ID", "vs_d8063d09-9c8e-485a-8770-a4af5630ab9f")
+
+LLM_API_KEY = os.getenv("LLM_API_KEY", "dummy")
 
 MAX_STEPS = int(os.getenv("MAX_STEPS", "9"))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
@@ -28,19 +34,31 @@ DEFAULT_SERVERS = [
         "name": "Weather MCP Server",
         "url": f"{MCP_SCHEME}://localhost:8060/mcp",
         "transport": MCP_SCHEME,
-        "description": "Weather services and historic climate lookups"
+        "description": "Weather services and historic climate lookups",
+        "examples": [
+            "Weather expected in Dubai today",
+            "Weather expected in Dubai on 2026-06-29"
+        ]
     },
     {
         "name": "HR MCP Server",
         "url": f"{MCP_SCHEME}://localhost:8000/mcp",
         "transport": MCP_SCHEME,
-        "description": "HR services and employee operations"
+        "description": "HR services and employee operations",
+        "examples": [
+            "Get basic profile for Osama Oransa",
+            "What is the current leave balance for Sara Ali?"
+        ]
     },
     {
         "name": "Orders MCP Server",
         "url": f"{MCP_SCHEME}://localhost:8001/mcp",
         "transport": MCP_SCHEME,
-        "description": "Order processing and Kafka-based workflows"
+        "description": "Order processing and Kafka-based workflows",
+        "examples": [
+            "Show last 10 Kafka orders",
+            "Show last 4 orders and compute the average amount"
+        ]
     }
 ]
 

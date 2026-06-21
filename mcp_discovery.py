@@ -15,6 +15,7 @@ async def discover_server(server_config):
         "url": server_config["url"],
         "transport": server_config["transport"],
         "description": server_config["description"],
+        "examples": server_config.get("examples", []),  # <-- ADD THIS LINE RIGHT HERE!
         "status": "down",   # default = down
         "tools": []
     }
@@ -45,7 +46,6 @@ async def discover_server(server_config):
 
     return result
     
-
 async def discover_all_servers():
 
     tasks = [
