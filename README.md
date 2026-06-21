@@ -11,19 +11,19 @@ You need first to have list of available MCP Servers, if you don't have one, dep
 Construct the list of MCP Servers as following: 
 
 ```
-MCP_SERVERS_JSON: |
-    [
-      {
+DEFAULT_SERVERS = [
+    {
         "name": "HR MCP Server",
-        "url": "http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp",
-        "transport": "http",
+        "url": f"{MCP_SCHEME}://localhost:8000/mcp",
+        "transport": MCP_SCHEME,
         "description": "HR services and employee operations",
         "examples": [
+            "Remote Work Policy?",
             "Get basic profile for Osama Oransa",
             "What is the current leave balance for Sara Ali?"
         ]
-      }
-    ]
+    }
+]
 ```
 Add it to the following ConfigMap, populate the Model information and any other configurations, then create that ConfigMap as following:
 
@@ -38,7 +38,7 @@ oc create configmap mcp-client-config \
   --from-literal=DEBUG=true \
   --from-literal=SHOW_TOOL_TRACE=true \
   --from-literal=MCP_SCHEME=http \
-  --from-literal=MCP_SERVERS_JSON='[{"name":"Weather MCP Server","url":"http://weather-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http","description":"Weather services and historic climate lookups","examples":["Weather expected in Dubai today","Weather expected in Dubai on 2026-06-29"]},{"name":"HR MCP Server","url":"http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http","description":"HR services and employee operations","examples":["Get basic profile for Osama Oransa","What is the current leave balance for Sara Ali?"]},{"name":"Orders MCP Server","url":"http://orders-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http","description":"Order processing and Kafka-based workflows","examples":["Show last 10 Kafka orders","Show last 4 orders and compute the average amount"]}]' \
+  --from-literal=MCP_SERVERS_JSON='[{"name": "HR MCP Server", "url": "http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp", "transport": "http", "description": "HR services and employee operations", "examples": ["Remote Work Policy?", "Get basic profile for Osama Oransa", "What is the current leave balance for Sara Ali?"]}]' \
   -n hr-mcp
 ```
 
@@ -55,7 +55,7 @@ oc expose svc/ocp-ai-mcp-client-demo -n hr-mcp
 
 Open the route and start interacting with the MCP client Chat Application.
 
-<img width="1492" height="729" alt="Screenshot 2026-06-12 at 3 32 58 PM" src="https://github.com/user-attachments/assets/e92af57c-e7ed-4a83-8751-5322ebdcb710" />
+<img width="1721" height="876" alt="Screenshot 2026-06-21 at 4 00 43 PM" src="https://github.com/user-attachments/assets/f6b4d357-4971-4260-afe7-31e8890214b9" />
 
 Example requests (based on the HR MCP Server):
 
