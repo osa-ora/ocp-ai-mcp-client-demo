@@ -17,7 +17,11 @@ MCP_SERVERS_JSON: |
         "name": "HR MCP Server",
         "url": "http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp",
         "transport": "http",
-        "description": "HR services and employee operations"
+        "description": "HR services and employee operations",
+        "examples": [
+            "Get basic profile for Osama Oransa",
+            "What is the current leave balance for Sara Ali?"
+        ]
       }
     ]
 ```
@@ -34,7 +38,7 @@ oc create configmap mcp-client-config \
   --from-literal=DEBUG=true \
   --from-literal=SHOW_TOOL_TRACE=true \
   --from-literal=MCP_SCHEME=http \
-  --from-literal=MCP_SERVERS_JSON='[{"name": "HR MCP Server", "url": "http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp", "transport": "http", "description": "HR services and employee operations"}]' \
+  --from-literal=MCP_SERVERS_JSON='[{"name":"Weather MCP Server","url":"http://weather-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http","description":"Weather services and historic climate lookups","examples":["Weather expected in Dubai today","Weather expected in Dubai on 2026-06-29"]},{"name":"HR MCP Server","url":"http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http","description":"HR services and employee operations","examples":["Get basic profile for Osama Oransa","What is the current leave balance for Sara Ali?"]},{"name":"Orders MCP Server","url":"http://orders-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http","description":"Order processing and Kafka-based workflows","examples":["Show last 10 Kafka orders","Show last 4 orders and compute the average amount"]}]' \
   -n hr-mcp
 ```
 
