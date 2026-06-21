@@ -46,6 +46,7 @@ DEFAULT_SERVERS = [
         "transport": MCP_SCHEME,
         "description": "HR services and employee operations",
         "examples": [
+            "Remote Work Policy?",
             "Get basic profile for Osama Oransa",
             "What is the current leave balance for Sara Ali?"
         ]
