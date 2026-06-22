@@ -6,13 +6,50 @@ from typing import TypedDict, Optional, Any, Dict, List
 from langgraph.graph import StateGraph, END
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from jinja2 import Template
-
+from openai import OpenAI
 # Config import
-from mcpconfig import MODEL_NAME, DEBUG, MAX_STEPS, MCP_SERVERS, LLM_PROVIDER, LLM_BASE_URL, LLM_API_KEY
+from mcpconfig import MODEL_NAME, DEBUG, MAX_STEPS, MCP_SERVERS, LLM_PROVIDER, LLM_BASE_URL, LLM_API_KEY, VECTOR_STORE_ID
 # LLM imports
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 
+# =========================================================
+# A tiny wrapper to make the Responses API behave exactly like a LangChain Chat Model
+# =========================================================
+class OGXResponseMock:
+    """Wraps a string response so it mimics a LangChain AIMessage object (.content)"""
+    def __init__(self, content: str):
+        self.content = content
+        print("response: ", content)
+
+
+class OGXChatWrapper:
+    def __init__(self, model: str, temperature: float, vector_store_id: str = None):
+        self.model = model
+        self.temperature = temperature
+        # Fallback value preserved from your setup if no vector_store_id is passed down dynamically
+        self.vector_store_id = VECTOR_STORE_ID
+
+    def invoke(self, query: str) -> OGXResponseMock:
+        """Mimics langchain's invoke method, routing RAG tools to the Responses API."""
+        
+        # 1. Structure the tool for the platform-managed Vector Store
+        tools = [{
+            "type": "file_search",
+            "vector_store_ids": [self.vector_store_id],
+            "max_num_results": 1,
+        }]
+
+        # 2. Call the Responses API directly with your hosted RAG assets
+        response = client.responses.create(
+            model=self.model,
+            temperature=self.temperature,
+            input=query,
+            tools=tools
+        )
+                
+        # 3. Return the grounded text output directly to your Graph's nodes
+        return OGXResponseMock(response.output_text)
 # =========================================================
 # CONFIG
 # =========================================================
@@ -142,7 +179,6 @@ def render_prompt(path: str, context: dict) -> str:
         template = Template(f.read())
         return template.render(**context)
 
-
 # =========================================================
 # STATE
 # =========================================================
@@ -176,30 +212,29 @@ def build_mcp_client():
 
 
 mcp_client = build_mcp_client()
-
 # =========================================================
 # LLM FACTORY
 # =========================================================
+client = None
 def build_llm(
     temperature: float = 0,
-    json_mode: bool = False
+    json_mode: bool = False,
+    vector_store_id: str = None  
 ):
+    global client # CRITICAL: Allows modifying the global variable scope container
     print(f"Selected provider: {Config.provider}")
+    
     if Config.provider == "ollama":
-
         kwargs = {
             "model": Config.model_name,
             "base_url": Config.base_url,
             "temperature": temperature
         }
-
         if json_mode:
             kwargs["format"] = "json"
-
         return ChatOllama(**kwargs)
 
     elif Config.provider == "openai":
-
         return ChatOpenAI(
             model=Config.model_name,
             api_key=Config.api_key,
@@ -209,9 +244,16 @@ def build_llm(
             timeout=60.0
         )
 
-    raise ValueError(
-        f"Unsupported provider: {Config.provider}"
-    )
+    elif Config.provider == "ogx":
+        # Instantiates the global instance safely without shadowing issues
+        client = OpenAI(base_url=Config.base_url, api_key=Config.api_key)
+        return OGXChatWrapper(
+            model=Config.model_name,
+            temperature=temperature,
+            vector_store_id=vector_store_id
+        )
+
+    raise ValueError(f"Unsupported provider: {Config.provider}")
 
 
 # Planner / Router LLM
@@ -223,7 +265,7 @@ llm = build_llm(
 # Response LLM - Ollama Natural Text Mode Enabled
 friendly_llm = build_llm(
     temperature=0.5,
-    json_mode=True
+    json_mode=False
 )
 
 # =========================================================

@@ -9,6 +9,8 @@ import asyncio
 from mcp_discovery import discover_all_servers
 from mcpconfig import MCP_SERVERS, SHOW_TOOL_TRACE
 from agent import run_agent, init
+from typing import Any, Dict, Optional
+
 
 # ----------------------------
 # BASE PATH
@@ -89,7 +91,57 @@ app.mount(
     name="static"
 )
 
+# ---------------------------------
+# SKILL CARD FOR OTHER AGENTS (A2A)
+# ---------------------------------
+@app.get("/.well-known/agent.json")
+async def agent_card():
+    return await build_agent_card_from_mcp_servers()
 
+
+async def build_agent_card_from_mcp_servers():
+    servers = await discover_all_servers() or []
+
+    return {
+        "name": "Dynamic MCP Orchestrator",
+        "description": "Orchestrates MCP tool ecosystem dynamically.",
+        "capabilities": [
+            {
+                "domain": s.get("name", "unknown"),
+                "description": s.get("description", ""),
+                "examples": s.get("examples", [])
+            }
+            for s in servers
+            if s.get("status") == "up"
+        ]
+    }
+
+# ---------------------------------
+# EXECUTION ENTRY FOR OTHER AGENTS (A2A)
+# ---------------------------------
+
+class TaskRequest(BaseModel):
+    id: Optional[str] = None
+    input: str
+    context: Dict[str, Any] = {}
+    
+def build_task_response(task_id, result):
+    return {
+        "id": task_id,
+        "status": "completed",
+        "output": result.get("answer"),
+        "artifacts": {
+            "tool_trace": result.get("tools", []),
+            "raw": result
+        }
+    }
+
+@app.post("/task")
+async def task(req: TaskRequest):
+    result = await run_agent(req.input)
+
+    return build_task_response(req.id, result)
+    
 # ----------------------------
 # REQUEST MODEL
 # ----------------------------
