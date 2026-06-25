@@ -31,6 +31,18 @@ MCP_SCHEME = os.getenv("MCP_SCHEME", "http")
 # Fallback defaults used ONLY if the ConfigMap environment variable is completely missing
 DEFAULT_SERVERS = [
     {
+        "name": "Demo Creation MCP Server",
+        "url": f"{MCP_SCHEME}://localhost:8085/mcp",
+        "transport": MCP_SCHEME,
+        "description": "Create Demos based on demands",
+        "examples": [
+            "Get the details of MCP Server Client Orchestrator Demo",
+            "Insall MCP Server Client Orchestrator Demo",
+            "Run MCP Server Client Orchestrator Demo",
+            "List available demos:
+        ]
+    },
+    {
         "name": "Weather MCP Server",
         "url": f"{MCP_SCHEME}://localhost:8060/mcp",
         "transport": MCP_SCHEME,
@@ -52,7 +64,7 @@ DEFAULT_SERVERS = [
         ]
     },
     {
-        "name": "Orders MCP Server",
+        "name": "Kafka Orders MCP Server",
         "url": f"{MCP_SCHEME}://localhost:8001/mcp",
         "transport": MCP_SCHEME,
         "description": "Order processing and Kafka-based workflows",
