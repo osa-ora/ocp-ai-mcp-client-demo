@@ -83,6 +83,23 @@ app = FastAPI(lifespan=lifespan)
 
 
 # ----------------------------
+# APPLICATION HEALTH CHECK
+# ----------------------------
+@app.get("/health")
+async def health():
+    return {
+        "status": "up",
+        "service": "MCP Client Orchestrator",
+        "mcp_servers": len(cached_servers),
+        "healthy_servers": len(
+            [
+                s for s in cached_servers
+                if s.get("status") == "up"
+            ]
+        )
+    }
+
+# ----------------------------
 # STATIC FILES
 # ----------------------------
 app.mount(
