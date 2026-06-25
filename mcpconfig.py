@@ -39,7 +39,7 @@ DEFAULT_SERVERS = [
             "Get the details of MCP Server Client Orchestrator Demo",
             "Insall MCP Server Client Orchestrator Demo",
             "Run MCP Server Client Orchestrator Demo",
-            "List available demos:
+            "List available demos"
         ]
     },
     {
