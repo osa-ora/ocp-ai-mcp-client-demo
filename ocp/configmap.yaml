@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-client-config
+data:
+  PORT: "8080"
+  LLM_PROVIDER: "openai"
+  LLM_BASE_URL: "http://maas.......opentlc.com/llm/qwen3-4b-instruct/v1"
+  LLM_API_KEY: "....."
+  MODEL_NAME: "qwen3-4b-instruct"
+  MAX_STEPS: "9"
+  DEBUG: "true"
+  SHOW_TOOL_TRACE: "true"
+  MCP_SCHEME: "http"
+  MCP_SERVERS_JSON: |
+    [{"name":"HR MCP Server","url":"http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http"}]
