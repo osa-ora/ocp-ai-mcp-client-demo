@@ -13,4 +13,16 @@ data:
   SHOW_TOOL_TRACE: "true"
   MCP_SCHEME: "http"
   MCP_SERVERS_JSON: |
-    [{"name":"HR MCP Server","url":"http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp","transport":"http"}]
+    [
+      {
+        "name": "HR MCP Server",
+        "url": "http://hr-mcp-server.hr-mcp.svc.cluster.local:8080/mcp",
+        "transport": "http",
+        "description": "HR services and employee operations",
+        "examples": [
+          "Remote Work Policy?",
+          "Get basic profile for Osama Oransa",
+          "What is the current leave balance for Sara Ali?"
+        ]
+      }
+    ]
