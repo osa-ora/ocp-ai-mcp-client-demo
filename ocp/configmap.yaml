@@ -28,11 +28,11 @@ data:
       {
         "name": "Weather MCP Server",
         "url": "http://weather-mcp-server.weather-mcp.svc.cluster.local:8080/mcp",
-        "transport": MCP_SCHEME,
+        "transport": "http",
         "description": "Weather services and historic climate lookups",
         "examples": [
-            "Weather expected in Dubai today",
-            "Weather expected in Dubai on 2026-06-29"
+          "Weather expected in Dubai today",
+          "Weather expected in Dubai on 2026-06-29"
         ]
       }
     ]
